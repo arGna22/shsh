@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-void cd(char *dir) 
+void cd(int argc, char **args) 
 {
-	chdir(dir);
+	chdir(args[1]);
 }
