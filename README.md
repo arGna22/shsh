@@ -1,2 +1,2 @@
 # shsh
-The shell we need.
+WIP: A basic shell implemented in C
