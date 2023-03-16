@@ -72,8 +72,5 @@ int strsplit(char *str, char delim, char **strings, int len)
 	}
 
 	return count;
-		
 }
-
-
 
