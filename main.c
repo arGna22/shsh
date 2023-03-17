@@ -4,7 +4,8 @@
 #include <string.h>
 #include <errno.h>
 #include <dirent.h>
-#include <stdarg.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "utils.h"
 #include "builtins.h"
 
@@ -18,18 +19,16 @@ char *builtinsNames[NUM_BUILTINS] = {
 };
 
 int searchBuiltins(int argc, char **args);
+void runCmd(char **args); 
 
 int searchBuiltins(int argc, char **args) 
 {
-	puts(args[0]);
 	for (int i = 0; i < NUM_BUILTINS; i++) {
 		if (!strcmp(builtinsNames[i], args[0])) {
-			puts("Found match!");
 			(builtins[i])(argc, args);
 			return 0;
 		}
 	}
-	puts("Did not find match!");
 
 	return -1;
 }
@@ -37,12 +36,20 @@ int searchBuiltins(int argc, char **args)
 void runCmd(char **args) 
 {
 	pid_t pid;
+	int pidstatus;
 	pid = fork();
-	if (pid == -1) {
-		if (execvp(args[0], args) == -1)
-			fprintf(stderr, "shsh: command: '%s' not found", args[0]); 
+	if (pid == -1)
+		perror("Unable to fork process.");
+	if (!pid) {
+		if (execvp(args[0], args) == -1)  {
+			perror("Error executing command");
+		}
 	}
+
+	if (waitpid(pid, &pidstatus, 0) == -1)
+		perror("Error waiting for process.");
 }
+
 int main() 
 {
 	char currentdir[150];
@@ -62,11 +69,12 @@ int main()
 		printf("[%s@%s]%s$ ", username, hostname, currentdir);
 		fgets(command, 4096, stdin);
 		command[strlen(command) - 1] = '\0';
-		puts(command);
 		argc = strsplit(command, ' ', args, 15);
 
-		if (searchBuiltins(argc, args) == -1)
+		if (searchBuiltins(argc, args) == -1) { 
+			args[argc] = NULL;
 			runCmd(args);
+		}
 		getcwd(currentdir, 150);
 	} 
 
