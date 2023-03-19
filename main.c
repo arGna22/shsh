@@ -18,10 +18,9 @@ char *builtinsNames[NUM_BUILTINS] = {
 	"cd"
 };
 
-int searchBuiltins(int argc, char **args);
-void runCmd(char **args); 
+int searchBuiltins(int argc, char **args, void (*builtins[])(int argc, char **args));
 
-int searchBuiltins(int argc, char **args) 
+int searchBuiltins(int argc, char **args, void (*builtins[])(int argc, char **args)) 
 {
 	for (int i = 0; i < NUM_BUILTINS; i++) {
 		if (!strcmp(builtinsNames[i], args[0])) {
@@ -31,23 +30,6 @@ int searchBuiltins(int argc, char **args)
 	}
 
 	return -1;
-}
-
-void runCmd(char **args) 
-{
-	pid_t pid;
-	int pidstatus;
-	pid = fork();
-	if (pid == -1)
-		perror("Unable to fork process.");
-	if (!pid) {
-		if (execvp(args[0], args) == -1)  {
-			perror("Error executing command");
-		}
-	}
-
-	if (waitpid(pid, &pidstatus, 0) == -1)
-		perror("Error waiting for process.");
 }
 
 int main() 
@@ -71,7 +53,7 @@ int main()
 		command[strlen(command) - 1] = '\0';
 		argc = strsplit(command, ' ', args, 15);
 
-		if (searchBuiltins(argc, args) == -1) { 
+		if (searchBuiltins(argc, args, builtins) == -1) { 
 			args[argc] = NULL;
 			runCmd(args);
 		}

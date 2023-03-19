@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/wait.h>
 #include <errno.h>
 
 
@@ -72,5 +73,22 @@ int strsplit(char *str, char delim, char **strings, int len)
 	}
 
 	return count;
+}
+
+void runCmd(char **args)
+{
+	pid_t pid;
+	int pidstatus;
+	pid = fork();
+	if (pid == -1)
+		perror("Unable to fork process");
+	if (!pid) {
+		if (execvp(args[0], args) == -1) {
+			perror("Error executing command");
+		}
+	}
+
+	if (waitpid(pid, &pidstatus, 0) == -1 && pid != -1)
+		perror("Error waiting for process.");
 }
 
