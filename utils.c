@@ -35,7 +35,7 @@ void gethost(char *var)
 	fscanf(fp, "%s", var);
 }
 
-int strsplit(char *str, char delim, char **strings, int len) 
+/*int strsplit(char *str, char delim, char **strings, int len) 
 {
 	int elements = 0; 
 	int index = 0;
@@ -67,12 +67,40 @@ int strsplit(char *str, char delim, char **strings, int len)
 
 		substr[index] = '\0';
 		index = 0; 
-		strings[count] = strdup(substr);
+		if (!strchr(substr, ' '))
+			strings[count] = strdup(substr);
 		count++; 
 		beginning = end;
 	}
 
+
 	return count;
+}*/
+
+int strsplit(char *str, char delim, char strings[15][30], size_t len)
+{
+
+        int state = 1; // 1 for in, 0 for out.
+        int count = 0;
+        int substrCount = 0;
+        char substr[15]; // I could actually make this the size of element len
+
+        for (char *s = str; 1; s++) { // This is good. It'll copy the null character too.
+                if (*s == delim && state || substrCount > 13 || !(*s)) {
+                        substr[substrCount] = '\0';
+                        strncpy(strings[count], substr, 15);
+			if (!(*s))
+				break;
+                        count++;
+                        state = 0;
+                        substrCount = 0;
+                }
+                else if (*str != delim) {
+                        state = 1;
+                        substr[substrCount] = *s;
+                        substrCount++;
+                }
+        }
 }
 
 void runCmd(char **args)
