@@ -90,7 +90,7 @@ int strsplit(char *str, char delim, char strings[15][30], size_t len)
                         substr[substrCount] = '\0';
                         strncpy(strings[count], substr, 15);
 			if (!(*s))
-				break;
+				return count; // Used to be break;
                         count++;
                         state = 0;
                         substrCount = 0;
