@@ -77,7 +77,7 @@ void gethost(char *var)
 	return count;
 }*/
 
-int strsplit(char *str, char delim, char strings[15][30], size_t len)
+/*int strsplit(char *str, char delim, char strings[15][30], size_t len)
 {
 
         int state = 1; // 1 for in, 0 for out.
@@ -96,6 +96,32 @@ int strsplit(char *str, char delim, char strings[15][30], size_t len)
                         substrCount = 0;
                 }
                 else if (*str != delim) {
+                        state = 1;
+                        substr[substrCount] = *s;
+                        substrCount++;
+                }
+        }
+}*/
+
+int strsplit(char *str, char delim, char **strings, size_t len)
+{
+
+        int state = 1; 
+        int count = 0;
+        int substrCount = 0;
+        char substr[15]; 
+
+        for (char *s = str; 1; s++) {
+                if (*s == delim && state || substrCount > 13 || !(*s)) {
+                        substr[substrCount] = '\0';
+			strings[count] = strdup(substr);
+			if (!(*s))
+				return count; 
+                        count++;
+                        state = 0;
+                        substrCount = 0;
+                }
+                else if (*s != delim) {
                         state = 1;
                         substr[substrCount] = *s;
                         substrCount++;

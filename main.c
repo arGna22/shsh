@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <stdio.h> 
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,7 +13,7 @@
 #define NUM_BUILTINS 1 
 
 
-void (*builtins[])(int argc, char **args)= {cd};
+void (*builtins[])(int argc, char **args) = {cd};
 char *builtinsNames[NUM_BUILTINS] = {
 	"cd"
 };
@@ -42,7 +42,7 @@ int main()
 
 	
 	char command[4096];
-	char *args[15]; 
+	char **args; 
 	int argc;
 
 	gethost(hostname);
@@ -52,7 +52,6 @@ int main()
 		fgets(command, 4096, stdin);
 		command[strlen(command) - 1] = '\0';
 		argc = strsplit(command, ' ', args, 15);
-
 		if (searchBuiltins(argc, args, builtins) == -1) { 
 			args[argc] = NULL;
 			runCmd(args);
