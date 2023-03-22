@@ -42,7 +42,7 @@ int main()
 
 	
 	char command[4096];
-	char **args; 
+	char *args[15]; 
 	int argc;
 
 	gethost(hostname);
