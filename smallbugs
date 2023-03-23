@@ -1,0 +1,2 @@
+- When spaces are the only "argument" they become an argument
+	- Need a better method of avoiding whitespace
