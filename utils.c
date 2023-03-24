@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <errno.h>
-
+#include "utils.h"
 
 void error(char *msg)
 {
@@ -35,7 +35,7 @@ void gethost(char *var)
 	fscanf(fp, "%s", var);
 }
 
-int strsplit(char *str, char delim, char **strings, size_t len)
+int strsplit(char *str, char delim, char **strings, int len)
 {
 
         int state = 1; 
@@ -61,14 +61,42 @@ int strsplit(char *str, char delim, char **strings, size_t len)
         }
 }
 
-void runCmd(char **args)
+void ioredir(struct redirInfo *info)
 {
-	pid_t pid;
+	FILE *redirect;
+	char *mode;
+	
+	for (int i = 0; i < info->len; i++) {
+		
+		switch (info->streams[i]) {
+		case IN:
+			mode = "r";
+			break;
+		case OUT:
+			mode = "w";
+			break;
+		case ERR:
+			mode = "a";
+		}
+		info->redirect = fopen(info->filename, mode);
+		dup2(info->streams[i], fileno(info->redirect));
+	}
+
+
+}
+
+void runCmd(char **args, int redir, struct redirInfo *info) // redir is 1 if there was a redirection, 0 if not
+{
+	pid_t pid; 
 	int pidstatus;
 	pid = fork();
+	FILE *redirect;
+
 	if (pid == -1)
 		perror("Unable to fork process");
 	if (!pid) {
+		if (redir)
+			;
 		if (execvp(args[0], args) == -1) {
 			perror("Error executing command");
 		}

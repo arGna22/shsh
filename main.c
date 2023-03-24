@@ -12,7 +12,6 @@
 
 #define NUM_BUILTINS 1 
 
-
 void (*builtins[])(int argc, char **args) = {cd};
 char *builtinsNames[NUM_BUILTINS] = {
 	"cd"
