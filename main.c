@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include "utils.h"
 #include "builtins.h"
+/* You were testing out the ioredir function, just giving hardcoded input. */
 
 
 #define NUM_BUILTINS 1 
@@ -46,14 +47,17 @@ int main()
 
 	gethost(hostname);
 
+	// Come up with hardcoded redir info
+	struct redirInfo info = {{OUT}, "randomoutput.txt", NULL, 1}; // Try to do this later with malloc 
+
 	for (;;) {
 		printf("[%s@%s]%s$ ", username, hostname, currentdir);
 		fgets(command, 4096, stdin);
 		command[strlen(command) - 1] = '\0';
 		argc = strsplit(command, ' ', args, 15);
 		if (searchBuiltins(argc, args, builtins) == -1) { 
-			args[argc] = NULL;
-			runCmd(args);
+			args[argc] = NULL; // A new one of these has to be created, like, we have to copy it.
+			runCmd(args, 1, &info);
 		}
 		getcwd(currentdir, 150);
 	} 

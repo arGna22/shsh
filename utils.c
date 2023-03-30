@@ -41,7 +41,7 @@ int strsplit(char *str, char delim, char **strings, int len)
         int state = 1; 
         int count = 0;
         int substrCount = 0;
-        char substr[15]; 
+        char substr[500]; 
 
         for (char *s = str; 1; s++) {
                 if (*s == delim && state || substrCount > 13 || !(*s)) {
@@ -79,9 +79,9 @@ void ioredir(struct redirInfo *info)
 			mode = "a";
 		}
 		info->redirect = fopen(info->filename, mode);
-		dup2(info->streams[i], fileno(info->redirect));
+		if (dup2(info->streams[i], fileno(info->redirect)) == -1)
+			perror("Unable to copy stream");
 	}
-
 
 }
 
@@ -90,13 +90,13 @@ void runCmd(char **args, int redir, struct redirInfo *info) // redir is 1 if the
 	pid_t pid; 
 	int pidstatus;
 	pid = fork();
-	FILE *redirect;
 
 	if (pid == -1)
 		perror("Unable to fork process");
 	if (!pid) {
-		if (redir)
-			;
+		if (redir) 
+			ioredir(info);
+		
 		if (execvp(args[0], args) == -1) {
 			perror("Error executing command");
 		}
