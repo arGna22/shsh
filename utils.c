@@ -6,6 +6,8 @@
 #include <errno.h>
 #include "utils.h"
 
+#define SUBSTRLEN 500
+
 void error(char *msg)
 {
 	fprintf(stderr, "%s: %s", msg, strerror(errno));
@@ -41,10 +43,10 @@ int strsplit(char *str, char delim, char **strings, int len)
         int state = 1; 
         int count = 0;
         int substrCount = 0;
-        char substr[500]; 
+        char substr[SUBSTRLEN]; 
 
         for (char *s = str; 1; s++) {
-                if (*s == delim && state || substrCount > 13 || !(*s)) {
+                if (*s == delim && state || substrCount > SUBSTRLEN - 2 || !(*s)) {
                         substr[substrCount] = '\0';
 			strings[count] = strdup(substr);
                         count++;
@@ -63,7 +65,7 @@ int strsplit(char *str, char delim, char **strings, int len)
 
 void ioredir(struct redirInfo *info)
 {
-	FILE *redirect;
+	FILE *redirect; // It may be better to have this, opposed to an extra field. 
 	char *mode;
 	
 	for (int i = 0; i < info->len; i++) {
@@ -79,7 +81,8 @@ void ioredir(struct redirInfo *info)
 			mode = "a";
 		}
 		info->redirect = fopen(info->filename, mode);
-		if (dup2(info->streams[i], fileno(info->redirect)) == -1)
+
+		if (dup2(fileno(info->redirect), info->streams[i]) == -1)
 			perror("Unable to copy stream");
 	}
 

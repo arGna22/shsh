@@ -8,7 +8,6 @@
 #include <sys/wait.h>
 #include "utils.h"
 #include "builtins.h"
-/* You were testing out the ioredir function, just giving hardcoded input. */
 
 
 #define NUM_BUILTINS 1 
