@@ -1,65 +1,56 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <dirent.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include "prompt.h"
 #include "utils.h"
 #include "builtins.h"
 
+#define HOSTNAMESIZE 64
+#define PATHNAMESIZE 4096
+#define INPUTSIZE 500 
 
-#define NUM_BUILTINS 1 
-
-void (*builtins[])(int argc, char **args) = {cd};
-char *builtinsNames[NUM_BUILTINS] = {
-	"cd"
-};
-
-int searchBuiltins(int argc, char **args, void (*builtins[])(int argc, char **args));
-
-int searchBuiltins(int argc, char **args, void (*builtins[])(int argc, char **args)) 
+int main()
 {
-	for (int i = 0; i < NUM_BUILTINS; i++) {
-		if (!strcmp(builtinsNames[i], args[0])) {
-			(builtins[i])(argc, args);
-			return 0;
-		}
+	/* VARIABLE DECLARATIONS */
+
+	// Prompt-related variables
+	char hostname[HOSTNAMESIZE];
+	char *username;
+	char cwd[PATHNAMESIZE];
+
+	// Activity-related variables 
+	char input[INPUTSIZE];
+	char *command;
+	struct arg *arguments;
+
+	// Fetching and setting information for prompt
+	gethostname(hostname, HOSTNAMESIZE);
+	username = getlogin();
+	if (!username) {
+		fprintf(stderr, "Error: unable to fetch username");
+		return 1;
 	}
+	getcwd(cwd, PATHNAMESIZE);
+	struct promptInfo prompt = {hostname, username, cwd};
 
-	return -1;
-}
-
-int main() 
-{
-	char currentdir[150];
-	getcwd(currentdir, 150);
-
-	char *username = getenv("USER");
-	char hostname[15];
-
-	
-	char command[4096];
-	char *args[15]; 
-	int argc;
-
-	gethost(hostname);
-
-	// Come up with hardcoded redir info
-	struct redirInfo info = {{OUT}, "randomoutput.txt", NULL, 1}; // Try to do this later with malloc 
-
+	// Running the shell program
 	for (;;) {
-		printf("[%s@%s]%s$ ", username, hostname, currentdir);
-		fgets(command, 4096, stdin);
-		command[strlen(command) - 1] = '\0';
-		argc = strsplit(command, ' ', args, 15);
-		if (searchBuiltins(argc, args, builtins) == -1) { 
-			args[argc] = NULL; // A new one of these has to be created, like, we have to copy it.
-			runCmd(args, 1, &info);
-		}
-		getcwd(currentdir, 150);
-	} 
+		getcwd(cwd, PATHNAMESIZE);
+		// Display the prompt
+		printf("%s@%s:[%s]$ ", username, hostname, cwd);
+		// Wait for/collect command 
+		fgets(input, INPUTSIZE, stdin);
+		// Remove the newline
+		input[strcspn(input, "\n")] = '\0';
+		// Checking if the string read in is empty
+		if (input[0] == '\0')
+			continue;
+		arguments = strsplit(input);
+		command = arguments->cmd; 
 
+		// Execute the command appropriately
+		exeCmd(arguments); 
+	}
+		
 	return 0;
 }

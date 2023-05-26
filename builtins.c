@@ -1,6 +1,10 @@
 #include <unistd.h>
+#include "utils.h"
 
-void cd(int argc, char **args) 
+void cd(struct arg *args) // This needs to accept a linked list of arguments
 {
-	chdir(args[1]);
+	if (args->next)
+		chdir(args->next->cmd);	
+	else
+		chdir("~");
 }

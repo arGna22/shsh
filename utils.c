@@ -1,111 +1,106 @@
 #include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <string.h>
-#include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
+#include <sys/wait.h>
 #include "utils.h"
+#include "builtins.h"
 
-#define SUBSTRLEN 500
+#define NUMBUILTINS 1
+#define ARGSLIMIT 20
+#define ARGSLENLIMIT 4096
 
-void error(char *msg)
+char *builtinList[] = {"cd"};
+void (*builtins[])(struct arg *args) = {cd};
+
+void error(char *msg, int end)
 {
-	fprintf(stderr, "%s: %s", msg, strerror(errno));
-	exit(1);
+	fprintf(stderr, "\n%s: %s", msg, strerror(errno));
+	if (end) exit(1); // This should work, I believe.
 }
 
-void gethost(char *var)
+struct arg *strsplit(char *input)  
 {
-	pid_t pid;
-	FILE *fp;
-	int fd[2];
-
-	if (pipe(fd) == -1)
-		error("Can't create pipe");
-
-	if ((pid = fork()) == -1) {
-		error("Unable to fetch hostname");
-	} else if (!pid) {
-		close(fd[0]);
-		dup2(fd[1], 1);
-		if (execl("/bin/hostname", "/bin/hostname", NULL) == -1)
-			error("Could not execute 'hostname'");
-	}
-
-	close(fd[1]);
-	fp = fdopen(fd[0], "r");
-	fscanf(fp, "%s", var);
-}
-
-int strsplit(char *str, char delim, char **strings, int len)
-{
-
-        int state = 1; 
-        int count = 0;
-        int substrCount = 0;
-        char substr[SUBSTRLEN]; 
-
-        for (char *s = str; 1; s++) {
-                if (*s == delim && state || substrCount > SUBSTRLEN - 2 || !(*s)) {
-                        substr[substrCount] = '\0';
-			strings[count] = strdup(substr);
-                        count++;
-			if (!(*s))
-				return count; 
-                        state = 0;
-                        substrCount = 0;
-                }
-                else if (*s != delim) {
-                        state = 1;
-                        substr[substrCount] = *s;
-                        substrCount++;
-                }
-        }
-}
-
-void ioredir(struct redirInfo *info)
-{
-	FILE *redirect; // It may be better to have this, opposed to an extra field. 
-	char *mode;
-	
-	for (int i = 0; i < info->len; i++) {
-		
-		switch (info->streams[i]) {
-		case IN:
-			mode = "r";
-			break;
-		case OUT:
-			mode = "w";
-			break;
-		case ERR:
-			mode = "a";
+	char *token = strtok(input, " ");
+	struct arg *argumentList = NULL;
+	struct arg *current = NULL;
+	while (token != NULL) {
+		if (!argumentList) {
+			argumentList = create(token);
+			current = argumentList;
+		} else {
+			current->next = create(token);
+			current = current->next;
 		}
-		info->redirect = fopen(info->filename, mode);
-
-		if (dup2(fileno(info->redirect), info->streams[i]) == -1)
-			perror("Unable to copy stream");
+		token = strtok(NULL, " ");
 	}
 
+	return argumentList;
 }
 
-void runCmd(char **args, int redir, struct redirInfo *info) // redir is 1 if there was a redirection, 0 if not
+struct arg *create(char *text)
 {
-	pid_t pid; 
+	struct arg *argument = malloc(sizeof(struct arg));
+	argument->cmd = strdup(text);
+	argument->next = NULL;
+
+	return argument; 
+}
+
+void getArgsArray(struct arg *args, char *arr[])
+{
+	struct arg *current = args;
+	int i = 0;
+
+	for (; i < ARGSLIMIT - 1 && current != NULL; i++)
+	{
+		arr[i] = current->cmd;
+		current = current->next;
+	}
+	// If i == ARGSLIMIT then index will be out of bounds, so we must decrement
+	if (i == ARGSLIMIT) {
+		i--;
+		return;
+	}
+	arr[i] = NULL; 
+}
+
+void exeCmd(struct arg *args)
+{
+	char *commandName = args->cmd;
+	for (int i = 0; i < NUMBUILTINS; i++) {
+		if (!strcmp(builtinList[i], commandName)) {
+			(builtins[i])(args);
+			return;
+		}
+	}
+
+	char *arguments[ARGSLIMIT];
+	getArgsArray(args, arguments);
+
+	pid_t pid;
 	int pidstatus;
 	pid = fork();
 
+	
 	if (pid == -1)
-		perror("Unable to fork process");
-	if (!pid) {
-		if (redir) 
-			ioredir(info);
-		
-		if (execvp(args[0], args) == -1) {
-			perror("Error executing command");
-		}
+		error("Unable to fork process", 0);
+	if (!pid)
+	{
+		struct arg *current = args;
+		if(execvp(args->cmd, arguments) == -1)
+			error("Command unable to be executed", 0); // should i exit, or should i not?
 	}
 
+
 	if (waitpid(pid, &pidstatus, 0) == -1 && pid != -1)
-		perror("Error waiting for process.");
+		error("Error waiting for process", 0);
+	// The only reason I am skeptical to use exec is because if a user provides a path toa commnd, it will be searched for in path, which will give an incorrect result. 
+	// For now, I will use execvp for the sake of simplicity. 
+	// Fork and execute comand using execvp
+	// OR exec
+	// if it is in the list of builtins, then run the builtin.
+	// if it is not in the list of builtins, then execute it.
 }
 

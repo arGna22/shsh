@@ -1,1 +1,1 @@
-void cd(int argc, char **args); 
+void cd(struct arg *args); // This needs to accept a linked list of arguments

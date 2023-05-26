@@ -1,18 +1,11 @@
-enum iostream {
-	IN,
-	OUT,
-	ERR
-};
-struct redirInfo {
-	enum iostream streams[5];
-	char *filename;
-	FILE *redirect;
-	int len;
+struct arg
+{
+	char *cmd;
+	struct arg *next;
 };
 
-void error(char *msg);
-void gethost(char *var);
-int strsplit(char *str, char delim, char **strings, int len);
-void runCmd(char **args, int redir, struct redirInfo *info);
-
+struct arg *strsplit(char *input);
+struct arg *create(char *text);
+void getArgsArray(struct arg *args, char *arr[]);
+void exeCmd(struct arg *args); 
 
