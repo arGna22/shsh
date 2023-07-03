@@ -1,5 +1,5 @@
-main: main.c utils.o builtins.o
-	gcc main.c utils.o builtins.o -o main
+main: main.c utils.o builtins.o signalhandling.o argslinkedl.o
+	gcc main.c utils.o builtins.o signalhandling.o argslinkedl.o -o main
 
 utils.o: utils.c builtins.c  
 	gcc -c utils.c -o utils.o 
@@ -7,9 +7,15 @@ utils.o: utils.c builtins.c
 builtins.o: builtins.c
 	gcc -c builtins.c -o builtins.o
 
-testing: testing.c utils.o builtins.o 
-	gcc testing.c utils.o builtins.o -o testing
+signalhandling.o: signalhandling.c 
+	gcc -c signalhandling.c -o signalhandling.o
 
-maindebug:
-	gcc -g main.c utils.o builtins.o -o main 
+argslinkedl.o: argslinkedl.c
+	gcc -c argslinkedl.c -o argslinkedl.o
+
+testing: testing.c utils.o builtins.o argslinkedl.o
+	gcc testing.c utils.o builtins.o argslinkedl.o -o testing
+
+maindebug: main.c utils.o builtins.o signalhandling.o
+	gcc -fsanitize=address, undefined main.c utils.o builtins.o signalhandling.o -o main 
 
