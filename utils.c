@@ -13,8 +13,6 @@
 char *builtinList[] = {"cd", "exit"};
 void (*builtins[])(struct arg *args) = {cd, killProgram};
 
-int placeholderDescriptor = 3;
-
 void error(char *msg, int end)
 {
 	fprintf(stderr, "\n%s: %s", msg, strerror(errno));
@@ -207,4 +205,5 @@ void resetDescriptorTable()
 	dup2(4, STDERR_FILENO);
 	dup2(5, STDIN_FILENO);
 }
+
 
