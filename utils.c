@@ -15,7 +15,7 @@ void (*builtins[])(struct arg *args) = {cd, killProgram};
 
 void error(char *msg, int end)
 {
-	fprintf(stderr, "\n%s: %s", msg, strerror(errno));
+	fprintf(stderr, "%s: %s\n", msg, strerror(errno));
 	if (end) exit(1); 
 }
 
@@ -44,7 +44,8 @@ struct arg *strsplit(char *input)
 	return argumentList;
 }
 
-void exeCmd(struct arg *args)
+
+void exeCmd(struct arg *args) 
 {
 	char *commandName = args->cmd;
 
@@ -56,7 +57,6 @@ void exeCmd(struct arg *args)
 	}
 
 	char *arguments[ARGSLIMIT];
-	redirectOutput(args);
 	getArgsArray(args, arguments);
 
 	pid_t pid;
@@ -67,14 +67,15 @@ void exeCmd(struct arg *args)
 		error("Unable to fork process", 0);
 	if (!pid)
 	{
+		signal(SIGINT, SIG_DFL);
 		struct arg *current = args;
-		if(execvp(args->cmd, arguments) == -1)
-			error("Command unable to be executed", 0); 
+		if(execvp(args->cmd, arguments) == -1) {
+			exit(1);
+		}
+	} else {
+		if (waitpid(pid, &pidstatus, 0) == -1 && pid != -1)
+			error("Error waiting for process", 0);
 	}
-
-
-	if (waitpid(pid, &pidstatus, 0) == -1 && pid != -1)
-		error("Error waiting for process", 0);
 	
 }
 
@@ -114,8 +115,7 @@ int redirectOutput(struct arg *args)
 			outc++;
 			if (outc > 1)
 			{
-				fprintf(stderr, "Error: You cannot utilize more than one stdout redirection operator per command.\n");
-				return -1;
+				fprintf(stderr, "Error: You cannot utilize more than one stdout redirection operator per command.\n");				return -1;
 			}
 			if (i->next != NULL)
 				filename = i->next->cmd;
@@ -180,21 +180,26 @@ int redirectOutput(struct arg *args)
 	return 0;
 }
 
-void cleanArgs(struct arg *args)
+void cleanArgs(struct arg **args)
 {
-	struct arg *previous = NULL;
-	char *operator = NULL;
-	for (struct arg *i = args; i != NULL; i = i->next)
-	{
-		operator = i->cmd;
-		if (strchr(operator, '>') || strchr(operator, '<'))
+	if (strchr((*args)->cmd, '<') || strchr((*args)->cmd, '>')) {
+		freeList(args);
+		*args = NULL;
+	} else {
+		struct arg *previous = NULL;
+		char *operator = NULL;
+		for (struct arg *i = *args; i != NULL; i = i->next) 
 		{
-			previous->next = i->next->next;
-			i = previous;
-		}
-		else
-		{
-			previous = i;
+			operator = i->cmd;
+			if (strchr(operator, '>') || strchr(operator, '<'))
+			{
+				previous->next = i->next->next;
+				i = previous;
+			}
+			else
+			{
+				previous = i;
+			}
 		}
 	}
 }
@@ -205,5 +210,3 @@ void resetDescriptorTable()
 	dup2(4, STDERR_FILENO);
 	dup2(5, STDIN_FILENO);
 }
-
-

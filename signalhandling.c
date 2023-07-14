@@ -11,4 +11,4 @@ int catch_signal(int sig, void (*handler)(int))
 	return sigaction (sig, &action, NULL);
 }
 
-void interrupt(int sig) {};
+void interrupt(int sig) {}

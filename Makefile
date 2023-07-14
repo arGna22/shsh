@@ -16,6 +16,6 @@ argslinkedl.o: argslinkedl.c
 testing: testing.c utils.o builtins.o argslinkedl.o
 	gcc testing.c utils.o builtins.o argslinkedl.o -o testing
 
-maindebug: main.c utils.o builtins.o signalhandling.o
-	gcc -fsanitize=address, undefined main.c utils.o builtins.o signalhandling.o -o main 
+maindebug: main.c utils.o builtins.o signalhandling.o argslinkedl.o
+	gcc -fsanitize=address main.c utils.o builtins.o signalhandling.o argslinkedl.o -o main 
 

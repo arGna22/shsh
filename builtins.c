@@ -1,17 +1,22 @@
+#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/types.h>
+#include <pwd.h>
 #include "utils.h"
+#include "argslinkedl.h"
 
-void cd(struct arg *args) // This needs to accept a linked list of arguments
+void cd(struct arg *args) 
 {
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
 	if (args->next)
 		chdir(args->next->cmd);	
 	else
-		chdir("~");
+		chdir(homedir);
 }
 
-// THe text for this builtin will be "exit"
 void killProgram(struct arg *args)
 {
-	raise(SIGKILL); // I might make this a different signal so that I can actually handle it and do soem necessary operatiosn before the program dies.
+	exit(0);
 }

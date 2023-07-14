@@ -29,15 +29,21 @@ void getArgsArray(struct arg *args, char *arr[])
 	arr[i] = NULL; 
 }
 
-int removeNode(struct arg *args, char *cmd)
-{
-    int status = -1; 
-    struct arg *previous = args;
-    for (struct arg *i = args; i != NULL; i = i->next) {
-        if (!strcmp(i->cmd, cmd)) {
-            previous->next = i->next->next;    
-            return 0;
-        }
-        previous = i;
-    }
+void freeList(struct arg **args) {
+	if (*args != NULL) {
+		if ((*args)->next == NULL) {
+			free(*args); 
+			*args = NULL;
+		} else {
+			struct arg *i = *args;
+			struct arg *current = NULL;
+			while (i != NULL) {
+				current = i;
+				i = i->next;
+				free(current->cmd);
+				free(current);
+			}
+		}
+	}
 }
+
