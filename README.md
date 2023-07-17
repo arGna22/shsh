@@ -4,7 +4,7 @@
 shsh is a basic shell implemented in the C programming language. 
 
 ## Functionality
-* Shell built-ins
+* Shell builtins
 * User commands
 * I/O redirection: 
 	* `>` to redirect `stdout` (overwrites)
