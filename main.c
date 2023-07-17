@@ -6,7 +6,6 @@
 #include "prompt.h"
 #include "utils.h"
 #include "builtins.h"
-#include "signalhandling.h"
 #include "argslinkedl.h"
 
 #define HOSTNAMESIZE 64
@@ -15,8 +14,6 @@
 
 int main()
 {
-	signal(SIGINT, SIG_IGN);
-
 	char hostname[HOSTNAMESIZE];
 	char *username; 
 	char cwd[PATHNAMESIZE];
@@ -57,9 +54,8 @@ int main()
 			continue;
 
 		arguments = strsplit(input);
-
 		command = arguments->cmd; 
-
+		
 		if (redirectOutput(arguments) != -1) {
 			cleanArgs(&arguments);
 			if (arguments != NULL)

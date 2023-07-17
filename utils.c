@@ -67,10 +67,9 @@ void exeCmd(struct arg *args)
 		error("Unable to fork process", 0);
 	if (!pid)
 	{
-		signal(SIGINT, SIG_DFL);
 		struct arg *current = args;
 		if(execvp(args->cmd, arguments) == -1) {
-			exit(1);
+			error("Error: Cannot recognize command", 1);
 		}
 	} else {
 		if (waitpid(pid, &pidstatus, 0) == -1 && pid != -1)
@@ -90,38 +89,17 @@ int redirectOutput(struct arg *args)
 	for (struct arg *i = args; i != NULL; i = i->next)
 	{
 		text = i->cmd;
-		if (!strcmp(text, ">")) {
+		if (!strcmp(text, ">>")) {
 			outc++;
 			if (outc > 1)
 			{
 				fprintf(stderr, "Error: You cannot utilize more than one stdout redirection operator per command.\n");
 				return -1;
 			}
-
-			if (i->next != NULL)  
-				filename = i->next->cmd;
-			else
-			{
-				fprintf(stderr, "Error: Redirection operator with no target.\n");
-				return -1;
-			}
-			dup2(STDOUT_FILENO, 3);
-
-			target = fopen(filename, "w");
-			dup2(fileno(target), STDOUT_FILENO);
-			close(fileno(target));
-		} 
-		else if (!strcmp(text, ">>")) {
-			outc++;
-			if (outc > 1)
-			{
-				fprintf(stderr, "Error: You cannot utilize more than one stdout redirection operator per command.\n");				return -1;
-			}
 			if (i->next != NULL)
 				filename = i->next->cmd;
 			else
 			{
-				fprintf(stderr, "Error: Redirection operator with no target.\n");
 				return -1;
 			}
 			dup2(STDOUT_FILENO, 3);
@@ -142,7 +120,6 @@ int redirectOutput(struct arg *args)
 				filename = i->next->cmd;
 			else
 			{
-				fprintf(stderr, "Error: Redirection operator with no target.\n");
 				return -1;
 			}
 			dup2(STDERR_FILENO, 4);
@@ -152,6 +129,26 @@ int redirectOutput(struct arg *args)
 			close(fileno(target));
 
 		} 
+		else if (strchr(text, '>')) {
+			outc++;
+			if (outc > 1)
+			{
+				fprintf(stderr, "Error: You cannot utilize more than one stdout redirection operator per command.\n");
+				return -1;
+			}
+
+			if (i->next != NULL)  
+				filename = i->next->cmd;
+			else
+			{
+				return -1;
+			}
+			dup2(STDOUT_FILENO, 3);
+
+			target = fopen(filename, "w");
+			dup2(fileno(target), STDOUT_FILENO);
+			close(fileno(target));
+		}
 		else if (!strcmp(text, "<")) {
 			inc++;
 			if (inc > 1)
@@ -163,7 +160,6 @@ int redirectOutput(struct arg *args)
 				filename = i->next->cmd;
 			else
 			{
-				fprintf(stderr, "Error: Redirection operator with no target.\n");
 				return -1;
 			}
 			dup2(STDIN_FILENO, 5);
