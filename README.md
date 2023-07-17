@@ -1,7 +1,7 @@
 # shsh
 
 ## What is this?
-shsh is a basic shell implemented in the C programming language. 
+shsh is a basic shell program implemented in the C programming language. 
 
 ## Functionality
 * Shell builtins
