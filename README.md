@@ -7,10 +7,10 @@ shsh is a basic shell implemented in the C programming language.
 * Shell built-ins
 * User commands
 * I/O redirection: 
-** `>` to redirect `stdout` (overwrites)
-** `>>` to redirect `stdout` (appends)
-** `>>>` to redirect `stderr` (overwrites)
-** `<` to redirect `stdin`
+	* `>` to redirect `stdout` (overwrites)
+	* `>>` to redirect `stdout` (appends)
+	* `>>>` to redirect `stderr` (overwrites)
+	* `<` to redirect `stdin`
 
 ## Installation
 1. Clone this repository: `git clone https://github.com/arGna22/shsh.git && cd shsh`
