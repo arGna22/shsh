@@ -1,69 +1,62 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
-#include <signal.h>
 #include <stdlib.h>
-#include "prompt.h"
+#include <unistd.h>
 #include "utils.h"
-#include "builtins.h"
-#include "argslinkedl.h"
-
-#define HOSTNAMESIZE 64
-#define PATHNAMESIZE 4096
-#define INPUTSIZE 500 
 
 int main()
 {
-	char hostname[HOSTNAMESIZE];
-	char *username; 
-	char cwd[PATHNAMESIZE];
+    // We are not having a convoluted prompt as before
+    // It will simply consist of the current working directory and a > sign
+    char *current_dir = get_current_directory();
+    char *input = NULL;
+    size_t input_size;
+    int command_count = 0;
+    int command_max = 2;
+    char ***commands = malloc(command_max * sizeof(char**));
 
-	char input[INPUTSIZE];
-	char *trimmedInput;
-	char *command;
-	struct arg *arguments;
+    char **command = NULL;
+    char *token;
 
-	char *returnVal;
+    int arg_count = 0;
+    int arg_max = 3;
 
-	gethostname(hostname, HOSTNAMESIZE);
-	username = getlogin();
-	if (!username) {
-		fprintf(stderr, "Error: unable to fetch username");
-		return 1;
-	}
-	getcwd(cwd, PATHNAMESIZE);
-	struct promptInfo prompt = {hostname, username, cwd};
+    while (1) {
+        printf("%s > ", current_dir);
 
-	do {
-		getcwd(cwd, PATHNAMESIZE);
-		printf("%s@%s:[%s]$ ", username, hostname, cwd);
+        getline(&input, &input_size, stdin);
+        input[strcspn(input, "\n")] = '\0';
 
-		returnVal = fgets(input, INPUTSIZE, stdin);
-		if (!input)
-			return 0;
-		
-		if (!strchr(input, '\n')) {
-			printf("\n");
-			continue;
-		}
-		input[strcspn(input, "\n")] = '\0';
-		
-		trimmedInput = trimWhitespace(input);
+        token = strtok(input, " ");
 
-		if (trimmedInput[0] == '\0')
-			continue;
+        command = malloc(arg_max * sizeof(char*));
+        arg_count = 0;
+        while (token != NULL) {
+            command[arg_count] = strdup(token);
+            if (is_shell_operator(token)) {
+                commands[command_count] = command;
+                command_count++;
+                arg_max = 3;
+                command = malloc(arg_max * sizeof(char*));
+                arg_count = 0;
+                if (command_count == command_max) {
+                    command_max++;
+                    commands = realloc(commands, command_max * sizeof(char**));
+                }
+            }
+            arg_count++;
+            if (arg_count == arg_max) {
+                arg_max++;
+                command = realloc(command, arg_max * sizeof(char*));
+            }
+            token = strtok(NULL, " ");
+        }
 
-		arguments = strsplit(input);
-		command = arguments->cmd; 
-		
-		if (redirectOutput(arguments) != -1) {
-			cleanArgs(&arguments);
-			if (arguments != NULL)
-				exeCmd(arguments); 
-		}
-		resetDescriptorTable();
-		freeList(&arguments);
-	} while(returnVal);
-		
-	return 0;
+        // This is where command execution will take place.
+        command_count = 0;
+        command_max = 2;
+
+        // How do I even free anything?
+    }        
+        free(current_dir);
 }

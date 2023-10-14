@@ -1,0 +1,51 @@
+1. command
+    cd
+    ls
+2. command with arguments
+    cd ..
+    ls -la
+    mkdir my_dir
+3. command with redirection
+    ls -la > file.txt 
+    ls -la > file.txt other_file.txt
+    some_command < file.txt 
+4. command with pipe
+    ls -la | grep "cheese.txt"
+5. command with background operator
+    command &
+6. Commands seperated by semicolon
+    cd .. ; ls
+7. Commands with logical operators
+    cd .. && ls
+    cd my_dir || ls
+8. Commands with variable expansion (accessing environment variables) 
+    echo $HOME
+9. Commands with wildcards
+    ls *.txt
+10. Commands with command substitution 
+    echo "Today is $(date)"
+11. Commands with no command, just a redirection operator
+    > test.txt <-- creates a file called test.txt
+
+Things that SEPERATE commands: |, &&, ||, and two logical operators 
+We will have an array of commands, which is just a bunch of characters that have been read in up until encountering one of these operators
+And then after that, we deal with the commands seperately. 
+
+Things that do not seperate commands but are still important: redirection, &, $, wildcards, command substitution, certain notation like ".." or "."
+
+{"ls -la", "grep *.txt > file.txt", }
+Is there a way we can partially parse things in the first while loop that will remove th need to loop through them again a second time?
+We will not go character by character, we will tokenize the string.
+
+int command_count = 3;
+malloc (command_count* sizeof(char **))
+{
+    {"ls", "-la"},
+    {"grep", "cheese.txt},
+}
+
+char **
+
+char *seperators[] = {
+    "|",
+}
